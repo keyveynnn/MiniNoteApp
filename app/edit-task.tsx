@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, Alert, SafeAreaView } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+// Ensure your database helper has the async updateTask function
 import { getTaskById, updateTask } from '../lib/database';
 
 export default function EditTask() {
@@ -12,6 +13,7 @@ export default function EditTask() {
   const statuses = ['Pending', 'Ongoing', 'Finished'];
 
   useEffect(() => {
+    // getTaskById remains Sync in your database, so this is fine
     const task = getTaskById(Number(id));
     if (task) {
       setTitle(task.title);
@@ -20,21 +22,41 @@ export default function EditTask() {
     }
   }, [id]);
 
-  const handleUpdate = () => {
+  // FIXED: Added 'async' here
+  const handleUpdate = async () => {
     if (!title) return Alert.alert("Wait", "Title is required");
-    updateTask(Number(id), title, desc, status);
-    // Use replace to go back and refresh the list properly
-    router.replace("/(tabs)/tasks");
+
+    try {
+      // FIXED: Added 'await' here to ensure DB finishes before navigation
+      await updateTask(Number(id), title, desc, status);
+      
+      // Use replace to go back and refresh the list properly
+      router.replace("/(tabs)/tasks");
+    } catch (error) {
+      console.error("Update failed:", error);
+      Alert.alert("Error", "Could not save changes.");
+    }
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Text style={styles.label}>EDIT TITLE</Text>
-        <TextInput style={styles.input} value={title} onChangeText={setTitle} />
+        <TextInput 
+          style={styles.input} 
+          value={title} 
+          onChangeText={setTitle} 
+          placeholder="Task title"
+        />
         
         <Text style={styles.label}>EDIT DESCRIPTION</Text>
-        <TextInput style={[styles.input, { height: 100 }]} multiline value={desc} onChangeText={setDesc} />
+        <TextInput 
+          style={[styles.input, { height: 100, textAlignVertical: 'top' }]} 
+          multiline 
+          value={desc} 
+          onChangeText={setDesc} 
+          placeholder="Task description"
+        />
         
         <Text style={styles.label}>STATUS</Text>
         <View style={styles.statusRow}>
@@ -42,9 +64,17 @@ export default function EditTask() {
             <Pressable
               key={item}
               onPress={() => setStatus(item)}
-              style={[styles.statusTab, status === item && styles.statusTabActive]}
+              style={[
+                styles.statusTab, 
+                status === item && styles.statusTabActive
+              ]}
             >
-              <Text style={[styles.statusTabText, status === item && styles.statusTabTextActive]}>{item}</Text>
+              <Text style={[
+                styles.statusTabText, 
+                status === item && styles.statusTabTextActive
+              ]}>
+                {item}
+              </Text>
             </Pressable>
           ))}
         </View>
@@ -59,14 +89,20 @@ export default function EditTask() {
   );
 }
 
-// Exactly the same styles as AddTask for perfect UI consistency
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#FFF' },
   container: { flex: 1, padding: 25 },
-  label: { fontSize: 12, fontWeight: '800', color: '#BBB', marginBottom: 8, marginTop: 20 },
+  label: { fontSize: 12, fontWeight: '800', color: '#BBB', marginBottom: 8, marginTop: 20, letterSpacing: 1 },
   input: { borderBottomWidth: 1, borderColor: '#EEE', paddingVertical: 12, fontSize: 18, color: '#1C1C1E' },
   statusRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
-  statusTab: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 10, marginHorizontal: 4, backgroundColor: '#F2F2F7' },
+  statusTab: { 
+    flex: 1, 
+    paddingVertical: 12, 
+    alignItems: 'center', 
+    borderRadius: 10, 
+    marginHorizontal: 4, 
+    backgroundColor: '#F2F2F7' 
+  },
   statusTabActive: { backgroundColor: '#1C1C1E' },
   statusTabText: { color: '#888', fontWeight: '700', fontSize: 13 },
   statusTabTextActive: { color: '#FFF' },

@@ -7,12 +7,14 @@ export default function AddTask() {
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
   const [status, setStatus] = useState('Pending');
-
   const statuses = ['Pending', 'Ongoing', 'Finished'];
 
-  const handleSave = () => {
+  // ADDED ASYNC HERE
+  const handleSave = async () => {
     if (!title) return Alert.alert("Wait", "Title is required");
-    addTask(title, desc, status); 
+    
+    // ADDED AWAIT HERE
+    await addTask(title, desc, status); 
     router.back();
   };
 
@@ -20,17 +22,28 @@ export default function AddTask() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Text style={styles.label}>TASK TITLE</Text>
-        <TextInput style={styles.input} placeholder="Task name..." onChangeText={setTitle} />
+        <TextInput 
+          style={styles.input} 
+          placeholder="New task..." 
+          onChangeText={setTitle} 
+          placeholderTextColor="#CCC"
+        />
         
         <Text style={styles.label}>DESCRIPTION</Text>
-        <TextInput style={[styles.input, { height: 100 }]} multiline placeholder="Details..." onChangeText={setDesc} />
+        <TextInput 
+          style={[styles.input, { height: 100 }]} 
+          multiline 
+          placeholder="Details..." 
+          onChangeText={setDesc}
+          placeholderTextColor="#CCC"
+        />
         
         <Text style={styles.label}>STATUS</Text>
         <View style={styles.statusRow}>
           {statuses.map((item) => (
-            <Pressable
-              key={item}
-              onPress={() => setStatus(item)}
+            <Pressable 
+              key={item} 
+              onPress={() => setStatus(item)} 
               style={[styles.statusTab, status === item && styles.statusTabActive]}
             >
               <Text style={[styles.statusTabText, status === item && styles.statusTabTextActive]}>{item}</Text>
@@ -38,11 +51,9 @@ export default function AddTask() {
           ))}
         </View>
         
-        <View style={styles.footer}>
-          <Pressable style={styles.btn} onPress={handleSave}>
-            <Text style={styles.btnText}>Create Task</Text>
-          </Pressable>
-        </View>
+        <Pressable style={styles.btn} onPress={handleSave}>
+          <Text style={styles.btnText}>Create Task</Text>
+        </Pressable>
       </View>
     </SafeAreaView>
   );
@@ -56,9 +67,8 @@ const styles = StyleSheet.create({
   statusRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
   statusTab: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 10, marginHorizontal: 4, backgroundColor: '#F2F2F7' },
   statusTabActive: { backgroundColor: '#1C1C1E' },
-  statusTabText: { color: '#888', fontWeight: '700', fontSize: 13 },
+  statusTabText: { color: '#888', fontWeight: '700' },
   statusTabTextActive: { color: '#FFF' },
-  footer: { marginTop: 'auto', paddingBottom: 20 },
-  btn: { backgroundColor: '#1C1C1E', padding: 20, borderRadius: 16, alignItems: 'center' },
+  btn: { backgroundColor: '#1C1C1E', padding: 20, borderRadius: 16, alignItems: 'center', marginTop: 'auto' },
   btnText: { color: '#FFF', fontWeight: '800', fontSize: 16 }
 });
